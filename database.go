@@ -39,4 +39,6 @@ type Datastore interface {
 	GetTableNames() ([]string, error)
 	//Close the connection to the datastore
 	Close() error
+	//Ping the datastore
+	Ping() error
 }

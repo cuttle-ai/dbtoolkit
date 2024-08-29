@@ -307,6 +307,11 @@ func (p Postgres) Close() error {
 	return p.DB.Close()
 }
 
+// Ping the datastore
+func (p Postgres) Ping() error {
+	return p.DB.Ping()
+}
+
 func convertToPostgresFormat(dateFormat string) string {
 	convertedDateFormat := strings.Replace(dateFormat, "2006", "YYYY", 1)
 	convertedDateFormat = strings.Replace(convertedDateFormat, "1", "mm", 1)
