@@ -37,4 +37,6 @@ type Datastore interface {
 	ChangeColumnTypeToDate(tableName string, colName string, dateFormat string) error
 	//Get all the tables in the datastore
 	GetTableNames() ([]string, error)
+	//Close the connection to the datastore
+	Close() error
 }

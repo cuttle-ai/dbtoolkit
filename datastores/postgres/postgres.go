@@ -288,6 +288,11 @@ func (p Postgres) GetTableNames() ([]string, error) {
 		if err := rows.Scan(vals...); err != nil {
 			return nil, err
 		}
+		tableName, ok := vals[0].(*string)
+		if !ok {
+			return nil, errors.New("couldn't parse the table name from the query results")
+		}
+		results = append(results, *tableName)
 	}
 	return results, nil
 }
@@ -296,6 +301,10 @@ func (p Postgres) GetTableNames() ([]string, error) {
 func (p Postgres) ChangeColumnTypeToDate(tableName string, colName string, dateFormat string) error {
 	_, err := p.DB.Exec("ALTER TABLE \"" + tableName + "\" ALTER COLUMN \"" + colName + "\" TYPE DATE using to_date(\"" + colName + "\", '" + convertToPostgresFormat(dateFormat) + "')")
 	return err
+}
+
+func (p Postgres) Close() error {
+	return p.DB.Close()
 }
 
 func convertToPostgresFormat(dateFormat string) string {
