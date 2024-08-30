@@ -272,8 +272,8 @@ func (p Postgres) GetColumnTypes(tableName string) ([]dbtoolkit.Column, error) {
 	return results, nil
 }
 
-func (p Postgres) GetTableNames() ([]string, error) {
-	rows, err := p.DB.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+func (p Postgres) GetTableNames(schemaName string) ([]string, error) {
+	rows, err := p.DB.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = '" + schemaName + "'")
 	if err != nil {
 		return nil, err
 	}
@@ -293,6 +293,56 @@ func (p Postgres) GetTableNames() ([]string, error) {
 			return nil, errors.New("couldn't parse the table name from the query results")
 		}
 		results = append(results, *tableName)
+	}
+	return results, nil
+}
+
+func (p Postgres) GetDDL(tableName string) (string, error) {
+	rows, err := p.DB.Query("SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_name = '" + tableName + "'")
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	var ddl strings.Builder
+	ddl.WriteString("CREATE TABLE " + tableName + " (")
+	for rows.Next() {
+		vals := make([]interface{}, 3)
+		for i := 0; i < len(vals); i++ {
+			v := ""
+			vals[i] = &v
+		}
+		if err := rows.Scan(vals...); err != nil {
+			return "", err
+		}
+		name, _ := vals[1].(*string)
+		dataType, _ := vals[2].(*string)
+		ddl.WriteString(*name + " " + *dataType + ",")
+	}
+	ddl.WriteString(");")
+	return ddl.String(), nil
+}
+
+func (p Postgres) GetSchemas() ([]string, error) {
+	rows, err := p.DB.Query("SELECT schema_name FROM information_schema.schemata")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	results := []string{}
+	for rows.Next() {
+		vals := make([]interface{}, 1)
+		for i := 0; i < len(vals); i++ {
+			v := ""
+			vals[i] = &v
+		}
+		if err := rows.Scan(vals...); err != nil {
+			return nil, err
+		}
+		schemaName, ok := vals[0].(*string)
+		if !ok {
+			return nil, errors.New("couldn't parse the schema name from the query results")
+		}
+		results = append(results, *schemaName)
 	}
 	return results, nil
 }

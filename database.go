@@ -36,9 +36,13 @@ type Datastore interface {
 	//ChangeColumnTypeToDate changes the data type of the given column to date with the provided date format
 	ChangeColumnTypeToDate(tableName string, colName string, dateFormat string) error
 	//Get all the tables in the datastore
-	GetTableNames() ([]string, error)
+	GetTableNames(schemaName string) ([]string, error)
 	//Close the connection to the datastore
 	Close() error
 	//Ping the datastore
 	Ping() error
+	//GetDDL returns the DDL for the given table
+	GetDDL(tableName string) (string, error)
+	//GetSchemas returns the list of schemas in the datastore
+	GetSchemas() ([]string, error)
 }
